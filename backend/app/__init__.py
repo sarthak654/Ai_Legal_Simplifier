@@ -1,0 +1,1 @@
+# AI Legal Simplifier & Q&A Assistant Backend
