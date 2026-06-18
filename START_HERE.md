@@ -4,61 +4,78 @@
 
 ### 1. Install Ollama
 - Download from https://ollama.ai and install
-- Open terminal and run: `ollama pull gemma3:12b` (or use your existing model)
+- Open a terminal and run:
+  ```bash
+  ollama pull gemma3:12b
+  ```
 
-### 2. Install Dependencies
-```bash
-# Backend - Install one by one to avoid conflicts
+### 2. Set Up the Backend
+
+```powershell
 cd backend
-pip install --upgrade pip setuptools wheel
-pip install fastapi uvicorn python-multipart
-pip install pdfplumber sentence-transformers
-pip install faiss-cpu numpy ollama
-pip install pydantic python-dotenv
+python -m venv venv
+venv\Scripts\activate
+pip install -r requirements.txt
+```
 
-# Frontend  
-cd ../frontend
+> `requirements.txt` installs everything the backend needs:
+> FastAPI, Uvicorn, pdfplumber (PDF reading), sentence-transformers (embeddings),
+> faiss-cpu (vector search), ollama (local LLM), pydantic, numpy, and more.
+
+### 3. Set Up the Frontend
+
+```powershell
+cd frontend
 npm install
 ```
 
-### 3. Start the App (3 terminals needed)
+### 4. Start the App (3 terminals needed)
 
-**Terminal 1 - Start Ollama:**
+**Terminal 1 — Ollama:**
 ```bash
 ollama serve
 ```
 
-**Terminal 2 - Start Backend:**
-```bash
+**Terminal 2 — Backend:**
+```powershell
 cd backend
+venv\Scripts\activate
 python -m app.main
 ```
 
-**Terminal 3 - Start Frontend:**
-```bash
+**Terminal 3 — Frontend:**
+```powershell
 cd frontend
 npm run dev
 ```
 
-### 4. Open App
+### 5. Open the App
 Go to: **http://localhost:3000**
+
+---
 
 ## How to Use
 1. Upload a PDF legal document
-2. Wait for analysis (30-60 seconds)
+2. Wait for analysis (30–60 seconds)
 3. Review simplified clauses and risk levels
 4. Ask questions about the document
 
+---
+
 ## Troubleshooting
-- **Python/pip errors**: Try installing packages individually (see step 2 above)
-- **Ollama error**: Make sure `ollama serve` is running and `ollama pull gemma2:12b` completed
-- **Port error**: Kill processes on ports 8000 and 3000
-- **PDF error**: Use text-based PDFs only (not scanned images)
-- **Still having issues**: Try creating a virtual environment:
-  ```bash
-  python -m venv venv
-  # Windows: venv\Scripts\activate
-  # Mac/Linux: source venv/bin/activate
+
+- **venv activation error (PowerShell)**: Run this once, then retry:
+  ```powershell
+  Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
   ```
 
-That's it! 🎉
+- **pip install errors**: Make sure the venv is activated (you should see `(venv)` in your prompt), then run:
+  ```powershell
+  pip install -r requirements.txt
+  ```
+
+- **Ollama error**: Make sure `ollama serve` is running in its own terminal and `ollama pull gemma3:12b` completed successfully
+
+- **Port conflict**: Kill processes on ports 8000 (backend) and 3000 (frontend)
+
+- **PDF error**: Use text-based PDFs only (not scanned images)
