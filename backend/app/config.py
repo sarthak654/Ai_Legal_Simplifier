@@ -18,7 +18,7 @@ MAX_FILE_SIZE = 5 * 1024 * 1024  # 5MB in bytes
 ALLOWED_EXTENSIONS = {".pdf"}
 
 # Ollama settings
-OLLAMA_MODEL = "gemma3:12b"  # Using Gemma3 12B model
+OLLAMA_MODEL = "qwen2.5:3b"  # 3B model fits in 4GB VRAM
 OLLAMA_BASE_URL = "http://localhost:11434"
 
 # Embedding model

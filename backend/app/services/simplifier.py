@@ -48,14 +48,18 @@ Format your response as a clear, simple explanation of what the legal text means
             
             # Check if Ollama is available
             if not self._check_ollama_connection():
-                return False, "", "Ollama service is not available. Please ensure Ollama is running."
+                error = f"Ollama model '{self.model_name}' not available. Run: ollama pull {self.model_name}"
+                logger.error(error)
+                return False, "", error
             
             # Prepare a simpler, more direct prompt
-            user_prompt = f"""Explain this legal text in simple English that anyone can understand:
+            user_prompt = f"""Explain this legal text in simple English that anyone can understand.
+Do NOT start with phrases like "Sure!", "Here's a simpler explanation", or any similar opener.
+Just give the explanation directly.
 
 {legal_text}
 
-Make it clear and easy to read. Don't give legal advice, just explain what it says."""
+Plain explanation (no intro, no legal advice):"""
             
             logger.info(f"Sending request to {self.model_name}...")
             
@@ -96,30 +100,51 @@ Make it clear and easy to read. Don't give legal advice, just explain what it sa
     def _check_ollama_connection(self) -> bool:
         """Check if Ollama service is available"""
         try:
-            # Try to list models to check connection
             models = self.client.list()
-            
-            # Check if our model is available
-            available_models = [model['name'] for model in models['models']]
-            if self.model_name not in available_models:
-                logger.warning(f"Model {self.model_name} not found. Available models: {available_models}")
-                # Try to pull the model
-                try:
-                    logger.info(f"Attempting to pull model {self.model_name}...")
-                    self.client.pull(self.model_name)
-                    return True
-                except Exception as e:
-                    logger.error(f"Failed to pull model {self.model_name}: {e}")
-                    return False
-            
+
+            # Newer Ollama versions use 'model' key, older use 'name'
+            available_models = []
+            for m in models['models']:
+                name = m.get('model') or m.get('name', '')
+                if name:
+                    available_models.append(name)
+                    # Also add without tag (e.g. 'gemma3:12b' matches 'gemma3:12b')
+
+            logger.info(f"Available Ollama models: {available_models}")
+
+            # Check exact match or prefix match (handles tags like :latest)
+            model_found = any(
+                m == self.model_name or m.startswith(self.model_name.split(':')[0])
+                for m in available_models
+            )
+
+            if not model_found:
+                logger.warning(f"Model {self.model_name} not found in {available_models}")
+                return False
+
             return True
-            
+
         except Exception as e:
             logger.error(f"Ollama connection failed: {e}")
             return False
     
     def _clean_response(self, text: str) -> str:
         """Clean the LLM response to remove problematic content"""
+        import re
+
+        # Strip common filler openers the model adds
+        filler_patterns = [
+            r"^sure[!,.]?\s*(here'?s?\s+)?a?\s*simpler\s+explanation\s+(of\s+(the\s+)?text\s*)?[:\-–]?\s*",
+            r"^here'?s?\s+a\s+simpler\s+(explanation|version|breakdown)\s*(of\s+(the\s+)?text\s*)?[:\-–]?\s*",
+            r"^here'?s?\s+the\s+simplified\s+(version|explanation)\s*[:\-–]?\s*",
+            r"^of\s+course[!,.]?\s*",
+            r"^certainly[!,.]?\s*",
+            r"^absolutely[!,.]?\s*",
+            r"^(okay|ok)[!,.]?\s*(here'?s?\s+)?",
+        ]
+        for pattern in filler_patterns:
+            text = re.sub(pattern, "", text, flags=re.IGNORECASE).strip()
+
         # Remove common legal advice phrases
         advice_phrases = [
             "you should", "you must", "i recommend", "i suggest",
@@ -129,12 +154,7 @@ Make it clear and easy to read. Don't give legal advice, just explain what it sa
         
         cleaned_text = text
         for phrase in advice_phrases:
-            # Replace advice language with neutral language
             cleaned_text = cleaned_text.replace(phrase, "this means")
-        
-        # Add disclaimer if needed
-        if any(phrase in text.lower() for phrase in advice_phrases):
-            cleaned_text += "\n\n⚠️ Note: This is an explanation only, not legal advice."
         
         return cleaned_text
     

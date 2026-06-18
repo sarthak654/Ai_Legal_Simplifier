@@ -111,16 +111,6 @@ const QAInterface = ({ documentData }) => {
         <div className="answer-container">
           <div className="answer-header">
             <h3>💬 Answer</h3>
-            <div className="answer-meta">
-              <span className="confidence">
-                Confidence: {Math.round(answer.confidence * 100)}%
-              </span>
-              {answer.relevant_clauses && answer.relevant_clauses.length > 0 && (
-                <span className="relevant-clauses">
-                  Based on {answer.relevant_clauses.length} clause(s)
-                </span>
-              )}
-            </div>
           </div>
 
           <div className="question-display">
@@ -132,13 +122,6 @@ const QAInterface = ({ documentData }) => {
               <p key={index}>{paragraph}</p>
             ))}
           </div>
-
-          {answer.relevant_clauses && answer.relevant_clauses.length > 0 && (
-            <div className="relevant-clauses-info">
-              <h4>📎 Relevant Clauses</h4>
-              <p>This answer is based on clauses: {answer.relevant_clauses.join(', ')}</p>
-            </div>
-          )}
         </div>
       )}
 

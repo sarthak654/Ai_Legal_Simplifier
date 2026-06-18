@@ -4,10 +4,15 @@
 
 ### 1. Install Ollama
 - Download from https://ollama.ai and install
-- Open a terminal and run:
-  ```bash
-  ollama pull gemma3:12b
-  ```
+- Open a terminal and pull the model based on your GPU VRAM:
+
+  | VRAM | Recommended Model | Command |
+  |------|-------------------|---------|
+  | 4 GB | qwen2.5:3b (default) | `ollama pull qwen2.5:3b` |
+  | 6 GB+ | gemma3:4b | `ollama pull gemma3:4b` |
+  | 8 GB+ | gemma3:12b | `ollama pull gemma3:12b` |
+
+  > The default config uses `qwen2.5:3b`. If you want a different model, update `OLLAMA_MODEL` in `backend/app/config.py`.
 
 ### 2. Set Up the Backend
 
@@ -74,7 +79,7 @@ Go to: **http://localhost:3000**
   pip install -r requirements.txt
   ```
 
-- **Ollama error**: Make sure `ollama serve` is running in its own terminal and `ollama pull gemma3:12b` completed successfully
+- **Ollama error**: Make sure `ollama serve` is running in its own terminal and the model pull completed. If you see a memory error in the backend logs, your GPU doesn't have enough VRAM — switch to a smaller model (see step 1 above)
 
 - **Port conflict**: Kill processes on ports 8000 (backend) and 3000 (frontend)
 

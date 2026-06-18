@@ -179,7 +179,7 @@ async def analyze_document(document_id: str):
         
         # Step 4: Create embeddings for Q&A
         logger.info("Creating embeddings for Q&A system")
-        clause_dicts = [clause.dict() for clause in processed_clauses]
+        clause_dicts = [clause.model_dump() for clause in processed_clauses]
         success, error = embedding_manager.create_embeddings(clause_dicts)
         if not success:
             logger.warning(f"Failed to create embeddings: {error}")

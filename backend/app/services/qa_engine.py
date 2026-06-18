@@ -17,19 +17,9 @@ class QAEngine:
         self.simplifier = simplifier
         
         # System prompt for Q&A
-        self.qa_system_prompt = """You are a legal document Q&A assistant. Your job is to answer questions based ONLY on the provided legal document context.
-
-STRICT RULES:
-1. NEVER provide legal advice
-2. ONLY use information from the provided context
-3. If the answer is not in the context, say "This information is not mentioned in the document"
-4. Be precise and factual
-5. Quote relevant parts of the document when possible
-6. Use simple language in your explanations
-7. NEVER guess or make assumptions
-8. Always remind users this is not legal advice
-
-Format: Provide a direct answer based on the document, then quote the relevant section(s)."""
+        self.qa_system_prompt = """You are a helpful assistant that answers questions about legal documents.
+Answer based on the provided document context. Be direct and clear.
+Use simple language. Do not give legal advice."""
     
     def answer_question(self, document_id: str, question: str) -> Tuple[bool, str, List[int], float]:
         """
@@ -72,11 +62,8 @@ Format: Provide a direct answer based on the document, then quote the relevant s
             # Calculate confidence based on similarity scores
             confidence = self._calculate_confidence(relevant_clauses)
             
-            # Add disclaimer
-            answer_with_disclaimer = f"{answer}\n\n{LEGAL_DISCLAIMER}"
-            
             logger.info(f"Answered question with {len(relevant_clauses)} relevant clauses")
-            return True, answer_with_disclaimer, clause_ids, confidence
+            return True, answer, clause_ids, confidence
             
         except Exception as e:
             error_msg = f"Error in Q&A: {str(e)}"
@@ -108,14 +95,14 @@ Format: Provide a direct answer based on the document, then quote the relevant s
     def _generate_answer(self, question: str, context: str) -> Tuple[bool, str, Optional[str]]:
         """Generate answer using LLM with context"""
         try:
-            user_prompt = f"""Based on the following legal document sections, please answer this question:
+            user_prompt = f"""Answer the following question using only the document sections provided below.
 
 Question: {question}
 
 Document Context:
 {context}
 
-Remember: Only use information from the provided context. If the answer is not in the context, say "This information is not mentioned in the document." Do not provide legal advice."""
+Answer directly and clearly based on the context above:"""
             
             # Use the simplifier's LLM client
             response = self.simplifier.client.chat(
